@@ -1,0 +1,7 @@
+---
+
+- name: Generate CA
+  include_tasks: generate_ca.yml
+
+- name: Generate certificates
+  include_tasks: generate_certificates.yml

@@ -1,0 +1,27 @@
+---
+
+- name: Create certificates directory
+  local_action:
+    module: file
+    path: "{{ certificates_directories.local_cert_dir }}"
+    state: directory
+
+- name: Generate CA key
+  become: false
+  local_action:
+    module: openssl_privatekey
+    path: "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.ca_key_name }}"
+    size: 2048
+
+- name: Generate CA Self-Signed Certificate
+  become: false
+  local_action:
+    module: command
+    cmd: >
+      openssl req -x509 -new -nodes
+      -key "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.ca_key_name }}"
+      -sha256 -days 3650
+      -out "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.ca_cert_name }}"
+      -subj "{{ certificates_ca_subj_text }}"
+  args:
+    creates: "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.ca_cert_name }}"

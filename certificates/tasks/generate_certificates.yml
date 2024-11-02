@@ -1,0 +1,39 @@
+---
+
+- name: Generate private key for each node
+  openssl_privatekey:
+    passphrase: "{{ certificates_cert_password }}"
+    path: "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.key_name }}"
+    size: 2048
+  delegate_to: localhost
+
+- name: Copy SAN config to nodes
+  template:
+    src: "san.cfg.j2"
+    dest: "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.san_cfg_name }}"
+  delegate_to: localhost
+
+- name: Generate CSR
+  command: >
+    openssl req -new 
+    -config "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.san_cfg_name }}"
+    -key "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.key_name }}"
+    -out "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.csr_name }}"
+    -passin pass:{{ certificates_cert_password }}
+    -subj "{{ certificates_csr_subj_text }}"
+    -addext "subjectAltName=DNS:{{ inventory_hostname }}.{{ certificates_base_domain }},IP:{{ ansible_host | trim }}"
+  args:
+    creates: "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.csr_name }}"
+  delegate_to: localhost
+
+- name: Generate certificate
+  command: >
+    openssl x509 -req -in "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.csr_name }}" 
+    -CA "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.ca_cert_name }}" -CAkey "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.ca_key_name }}"
+    -CAcreateserial -out "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.cert_name }}" 
+    -days 365 -sha256
+    -extfile "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.san_cfg_name }}"
+    -extensions v3_ca
+  args:
+    creates: "{{ certificates_directories.local_cert_dir }}/{{ certificates_filenames.cert_name }}"
+  delegate_to: localhost

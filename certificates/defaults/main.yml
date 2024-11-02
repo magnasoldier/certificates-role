@@ -1,0 +1,30 @@
+---
+
+certificates_base_domain: "domain.example.com"
+
+
+certificates_metadata:
+  country_code: "US"
+  region: "California"
+  city: "Cupertino"
+  organization: "Apple"
+  department: "IT"
+
+
+certificates_directories:
+  local_cert_dir: "/tmp/certs"
+
+certificates_filenames:
+  ca_key_name: "ca-key.pem"
+  ca_cert_name: "ca-cert.pem"
+  key_name: "{{ inventory_hostname }}-tls-key.pem"
+  cert_name: "{{ inventory_hostname }}-tls-cert.pem"
+  csr_name: "{{ inventory_hostname }}.csr"
+  san_cfg_name: "{{ inventory_hostname }}-san.cfg"
+
+
+certificates_ca_subj_text: "/C={{ certificates_metadata.country_code }}/ST={{ certificates_metadata.region }}/L={{ certificates_metadata.city }}/O={{ certificates_metadata.organization }}/OU={{ certificates_metadata.department }}/CN={{ certificates_metadata.organization }}"
+certificates_csr_subj_text: "/C={{ certificates_metadata.country_code }}/ST={{ certificates_metadata.region }}/L={{ certificates_metadata.city }}/O={{ certificates_metadata.organization }}/OU={{ certificates_metadata.department }}/CN={{ inventory_hostname }}.{{ certificates_base_domain }}"
+certificates_extra_ip_sans: []
+
+certificates_cert_password: "testpass"
